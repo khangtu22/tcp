@@ -28,7 +28,7 @@ public class ServerThread implements Runnable {
         addInstance();
     }
 
-    private static synchronized void dispatch(String message, ObjectOutputStream oos) {
+    private static synchronized void dispatch(Message message, ObjectOutputStream oos) {
         for (ServerThread serverThread : instances) {
             serverThread.dispatchMessage(message, oos);
         }
@@ -60,7 +60,8 @@ public class ServerThread implements Runnable {
         instances.remove(this);
     }
 
-    private synchronized void dispatchMessage(String echoString, ObjectOutputStream oos) {
+    private synchronized void dispatchMessage(Message message, ObjectOutputStream oos) {
+        String echoString =  (String) message.getT();
         String patternEcho = "echo \".*\"";
         String patternStandardize = "standardize \".*\"";
         String serverNotation = "SERVER";
@@ -72,15 +73,18 @@ public class ServerThread implements Runnable {
                     String tempEcho = handleEcho(echoString);
                     Message messageEcho = new Message(Type.ECHO, tempEcho);
                     oos.writeObject(messageEcho);
+                    System.out.println("Sent: '" + tempEcho + "'");
                     oos.flush();
                 } else if (matchStandardize) {
                     String tempEcho = handleStandardize(echoString);
                     Message messageEcho = new Message(Type.ECHO, tempEcho);
                     oos.writeObject(messageEcho);
+                    System.out.println("Sent: '" + tempEcho + "'");
                     oos.flush();
                 } else {
                     Message messageEcho = new Message(Type.ECHO, "Command not found!");
                     oos.writeObject(messageEcho);
+                    System.out.println("Sent: 'Command not found!'");
                     oos.flush();
                 }
             }
@@ -88,6 +92,10 @@ public class ServerThread implements Runnable {
             System.out.println("dispatchMessage caught exception :(");
             e.printStackTrace();
         }
+    }
+
+    private synchronized String handleMessageEcho(String message) {
+        return message;
     }
 
     private synchronized User checkLogin(User user) throws SQLException {
@@ -160,12 +168,11 @@ public class ServerThread implements Runnable {
                         if (existedUser != null) {
                             System.out.println("Login successful!");
                             oss.writeUTF("Login succeed");
-                            oss.flush();
                         } else {
                             System.out.println("Fail to login!");
                             oss.writeUTF("Wrong username or password");
-                            oss.flush();
                         }
+                        oss.flush();
                     }
 
                     case REGISTER -> {
@@ -188,7 +195,9 @@ public class ServerThread implements Runnable {
                     case ECHO -> {
                         String messageToEcho = (String) message.getT();
                         System.out.printf("Received: '%s'.\n", messageToEcho);
-                        dispatch(messageToEcho, oss);
+                        messageToEcho = handleMessageEcho(messageToEcho);
+                        oss.writeObject(new Message<String>(Type.ECHO,messageToEcho));
+                        oss.flush();
                     }
                 }
                 /*ois.close();

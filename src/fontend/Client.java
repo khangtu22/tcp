@@ -45,8 +45,10 @@ class Client {
             // object of scanner class
             Scanner sc = new Scanner(System.in);
             String line = null;
+            String echoMessage = null;
+
             while (true) {
-                System.out.println("Pick Action:");
+                System.out.println("-----MENU-----");
                 System.out.println("""
                         1: Message
                         2: Login
@@ -68,8 +70,7 @@ class Client {
                             System.out.println("1: back");
                             Message<String> news = new Message<>();
                             System.out.print("Enter Message : ");
-                            Scanner sc2 = new Scanner(System.in);
-                            String echoMessage = sc2.nextLine();
+                            echoMessage = sc.nextLine();
                             if (echoMessage.equalsIgnoreCase("1")) {
                                 break;
                             }
@@ -91,7 +92,7 @@ class Client {
                             /*sending the user input to server*/
                             User member = new User();
                             member.inputUser();
-                            os.writeObject(new Message<User>(Type.REGISTER, member));
+                            os.writeObject(new Message<User>(Type.LOGIN, member));
                             os.flush();
 
                             /*displaying server reply*/
