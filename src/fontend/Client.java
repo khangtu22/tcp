@@ -11,20 +11,24 @@ import java.net.Socket;
 import java.util.Scanner;
 
 class Client {
+
     public static boolean checkPassword(String s) {
         if (s.length() < 8) {
             return false;
         }
         int t = 0, t1 = 0, t2 = 0;
         for (int count = 0; count < s.length(); count++) {
-            if (s.charAt(count) > 'A' && s.charAt(count) < 'Z') {
+            if (s.charAt(count) > 64 && s.charAt(count) < 91) {
                 t++;
+                continue;
             }
-            if (s.charAt(count) > 'a' && s.charAt(count) < 'z') {
+            if (s.charAt(count) > 96 && s.charAt(count) < 123) {
                 t1++;
+                continue;
             }
-            if (s.charAt(count) > '0' && s.charAt(count) < '9') {
+            if (s.charAt(count) > 47 && s.charAt(count) < 58) {
                 t2++;
+                continue;
             }
         }
         return t > 0 && t1 > 0 && t2 > 0;
@@ -54,7 +58,7 @@ class Client {
                 int actionNumber = 0;
                 String tempActionNumber = null;
 
-                while (true){
+                while (true) {
                     do {
                         System.out.print("Enter number 1 to 4: ");
                         tempActionNumber = sc.nextLine();
@@ -64,7 +68,7 @@ class Client {
                         break;
                     }
                 }
-                if (actionNumber == 4){
+                if (actionNumber == 4) {
                     sc.close();
                     socket.close();
                     break;
@@ -72,7 +76,7 @@ class Client {
 
                 switch (actionNumber) {
                     case 1 -> {
-                        while (true){
+                        while (true) {
                             System.out.println("\n-----ECHO-----");
                             System.out.println("1: back");
                             Scanner sc1 = new Scanner(System.in);
@@ -111,7 +115,7 @@ class Client {
                             }
                             Scanner tempSc = new Scanner(System.in);
                             boolean isContinue = isContinue(tempSc);
-                            if (!isContinue){
+                            if (!isContinue) {
                                 break;
                             }
                         }
@@ -123,9 +127,9 @@ class Client {
                             /*sending the user input to server*/
                             User member = new User();
 
-                            while (true){
+                            while (true) {
                                 member.inputUser();
-                                if (checkPassword(member.getPassword())){
+                                if (checkPassword(member.getPassword())) {
                                     break;
                                 } else {
                                     System.out.println("Password must contain at least 8 characters, includes upper and lower case and number!!");
@@ -149,7 +153,7 @@ class Client {
                             }
                             Scanner tempSc = new Scanner(System.in);
                             boolean isContinue = isContinue(tempSc);
-                            if (!isContinue){
+                            if (!isContinue) {
                                 break;
                             }
                         }
