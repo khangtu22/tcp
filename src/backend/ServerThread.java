@@ -95,6 +95,7 @@ public class ServerThread implements Runnable {
     }
 
     private synchronized String handleMessageEcho(String message) {
+        message = message.replaceAll("[^a-zA-Z0-9]", " ");
         return message;
     }
 
