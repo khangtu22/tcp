@@ -4,14 +4,16 @@ import models.Message;
 import models.Type;
 import models.User;
 
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.Scanner;
 
 class Client {
-    public static boolean checkPassword(String s) {
+    public static boolean Check(String s) {
         if (s.length() < 8) {
             return false;
         }
@@ -43,94 +45,74 @@ class Client {
             // object of scanner class
             Scanner sc = new Scanner(System.in);
             String line = null;
+            String echoMessage = null;
 
             while (true) {
-                System.out.println("\n-----MENU-----");
+                System.out.println("-----MENU-----");
                 System.out.println("""
                         1: Message
                         2: Login
                         3: Register
                         4: Exit""");
                 int actionNumber = 0;
-                String tempActionNumber = null;
-
                 while (true){
-                    do {
-                        System.out.print("Enter number 1 to 4: ");
-                        tempActionNumber = sc.nextLine();
-                    } while (!(tempActionNumber.matches("[0-9]+") && tempActionNumber.length() > 0));
-                    actionNumber = Integer.parseInt(tempActionNumber);
-                    if (actionNumber >= 1 && actionNumber <= 4) {
+                    System.out.print("Enter number 1 to 4: ");
+                    actionNumber = sc.nextInt();
+                    if (actionNumber >= 1 && actionNumber <= 4){
                         break;
                     }
                 }
-                if (actionNumber == 4){
-                    sc.close();
-                    socket.close();
-                    break;
-                }
 
-                switch (actionNumber) {
+                switch (actionNumber){
                     case 1 -> {
                         while (true){
-                            System.out.println("\n-----ECHO-----");
+                            System.out.println("-----ECHO-----");
                             System.out.println("1: back");
-                            Scanner sc1 = new Scanner(System.in);
-                            String echoMessage = inputMessage(sc1);
-                            if (echoMessage.equals("")) {
-                                continue;
-                            }
+                            Message<String> news = new Message<>();
+                            System.out.print("Enter Message : ");
+                            echoMessage = sc.nextLine();
                             if (echoMessage.equalsIgnoreCase("1")) {
                                 break;
                             }
+                            news.setT(echoMessage);
+                            news.setType(Type.ECHO);
 
-                            os.writeObject(new Message<>(Type.ECHO, echoMessage));
+                            os.writeObject(news);
                             os.flush();
-
                             /*displaying server reply*/
                             Message returnMessage = (Message) is.readObject();
-                            System.out.println("SERVER>>> " + returnMessage.getT());
+                            System.out.println("SERVER>>>" + returnMessage.getT());
                         }
+
+
                     }
                     case 2 -> {
                         while (true) {
-                            System.out.println("\n-----LOGIN-----");
-
+                            System.out.println("-----LOGIN-----");
                             /*sending the user input to server*/
                             User member = new User();
                             member.inputUser();
-                            os.writeObject(new Message<>(Type.LOGIN, member));
+                            os.writeObject(new Message<User>(Type.LOGIN, member));
                             os.flush();
 
                             /*displaying server reply*/
                             String line1 = is.readUTF();
                             if (line1.equalsIgnoreCase("Login succeed")) {
                                 System.out.println("Successful login");
+                                break;
                             } else {
                                 System.out.println("Wrong username or password");
-                            }
-                            Scanner tempSc = new Scanner(System.in);
-                            boolean isContinue = isContinue(tempSc);
-                            if (!isContinue){
-                                break;
                             }
                         }
                     }
                     case 3 -> {
                         while (true) {
-                            System.out.println("\n-----REGISTER-----");
-
+                            System.out.println("-----REGISTER-----");
                             /*sending the user input to server*/
                             User member = new User();
-
-                            while (true){
+                            do {
                                 member.inputUser();
-                                if (checkPassword(member.getPassword())){
-                                    break;
-                                } else {
-                                    System.out.println("Password must contain at least 8 characters, includes upper and lower case and number!!");
-                                }
-                            }
+                            } while (!Check(member.getPassword()));
                             os.writeObject(new Message<User>(Type.REGISTER, member));
                             os.flush();
 
@@ -139,6 +121,7 @@ class Client {
                             switch (line1) {
                                 case "Username already existed" -> {
                                     System.out.println("Username was taken. You have to re-register!!");
+                                    continue;
                                 }
                                 case "success" -> {
                                     System.out.println("You have successfully registered.");
@@ -147,12 +130,13 @@ class Client {
                                     System.out.println("Something wrong when register!!");
                                 }
                             }
-                            Scanner tempSc = new Scanner(System.in);
-                            boolean isContinue = isContinue(tempSc);
-                            if (!isContinue){
-                                break;
-                            }
+                            break;
                         }
+                    }
+                    case 4 -> {
+                        sc.close();
+                        socket.close();
+                        continue;
                     }
                 }
             }
@@ -160,25 +144,6 @@ class Client {
 
         } catch (IOException e) {
             e.printStackTrace();
-        }
-    }
-
-
-    public static String inputMessage(Scanner sc) {
-        System.out.print("CLIENT>>> ");
-        return sc.nextLine();
-    }
-
-    public static boolean isContinue(Scanner sc) {
-        String temp;
-        while (true) {
-            System.out.print("Do you want continue action (Y/N):  ");
-            temp = sc.nextLine();
-            boolean quit = temp.equalsIgnoreCase("y");
-            boolean notQuit = temp.equalsIgnoreCase("n");
-            if (quit || notQuit) {
-                return quit;
-            }
         }
     }
 }

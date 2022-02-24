@@ -44,9 +44,9 @@ public class User implements Serializable {
 
     public void inputUser() {
         Scanner myObj = new Scanner(System.in);
-        System.out.print("Enter username: ");
+        System.out.println("Enter username");
         this.username = myObj.nextLine();
-        System.out.print("Enter password: ");
+        System.out.println("Enter password:");
         this.password = myObj.nextLine();
     }
 }
