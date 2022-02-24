@@ -19,12 +19,6 @@ public class DBConnection implements AutoCloseable {
         return DBHelper.dbHelper;
     }
 
-    public static void main(String[] args) {
-        DBConnection dbHelper = DBConnection.getDBHelper();
-        Connection connection = dbHelper.getConnection();
-        System.out.println(connection);
-    }
-
     public Connection getConnection() {
         try {
             Class.forName(DRIVER);
