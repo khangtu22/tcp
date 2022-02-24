@@ -46,9 +46,11 @@ class Client {
             // object of scanner class
             Scanner sc = new Scanner(System.in);
             String line = null;
-            System.out.println("Enter Message/Login/Register/Exit");
-            line = sc.nextLine();
-            while (!line.equalsIgnoreCase("Exit")) {
+/*            System.out.println("Enter Message/Login/Register/Exit");
+            line = sc.nextLine();*/
+            while (true) {
+                System.out.println("Enter Message/Login/Register/Exit");
+                line = sc.nextLine();
                 if(line.equalsIgnoreCase("Register")){
                     while(true) {
 
@@ -103,7 +105,11 @@ class Client {
                     Message<String> news = new Message<>();
                     System.out.print("Enter Message: ");
                     String echoMessage = sc.nextLine();
+                    if (echoMessage.equalsIgnoreCase("back")){
+                        continue;
+                    }
                     news.setT(echoMessage);
+                    news.setType(Type.ECHO);
 
                     os.writeObject(news);
                     os.flush();
