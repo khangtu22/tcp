@@ -1,6 +1,5 @@
 package backend;
 
-
 import backend.connect.DBConnection;
 import models.Message;
 import models.Type;
@@ -28,30 +27,6 @@ public class ServerThread implements Runnable {
         addInstance();
     }
 
-    private static synchronized void dispatch(Message message, ObjectOutputStream oos) {
-        for (ServerThread serverThread : instances) {
-            serverThread.dispatchMessage(message, oos);
-        }
-    }
-
-    private static synchronized String handleEcho(String echoString) {
-        echoString = echoString.replace("echo \"", "");
-        return removeLastChar(echoString);
-    }
-
-    private static synchronized String handleStandardize(String echoString) {
-        echoString = echoString.replace("standardize \"", "");
-        echoString = removeLastChar(echoString);
-        echoString = echoString.trim().replaceAll(" +", " ");
-        echoString = echoString.toLowerCase();
-        echoString = echoString.substring(0, 1).toUpperCase() + echoString.substring(1);
-        return echoString;
-    }
-
-    private static synchronized String removeLastChar(String s) {
-        return s.substring(0, s.length() - 1);
-    }
-
     private synchronized void addInstance() {
         instances.add(this);
     }
@@ -60,41 +35,8 @@ public class ServerThread implements Runnable {
         instances.remove(this);
     }
 
-    private synchronized void dispatchMessage(Message message, ObjectOutputStream oos) {
-        String echoString =  (String) message.getT();
-        String patternEcho = "echo \".*\"";
-        String patternStandardize = "standardize \".*\"";
-        String serverNotation = "SERVER";
-        try {
-            if (echoString != null) {
-                boolean matchEcho = Pattern.matches(patternEcho, echoString);
-                boolean matchStandardize = Pattern.matches(patternStandardize, echoString);
-                if (matchEcho) {
-                    String tempEcho = handleEcho(echoString);
-                    Message messageEcho = new Message(Type.ECHO, tempEcho);
-                    oos.writeObject(messageEcho);
-                    System.out.println("Sent: '" + tempEcho + "'");
-                    oos.flush();
-                } else if (matchStandardize) {
-                    String tempEcho = handleStandardize(echoString);
-                    Message messageEcho = new Message(Type.ECHO, tempEcho);
-                    oos.writeObject(messageEcho);
-                    System.out.println("Sent: '" + tempEcho + "'");
-                    oos.flush();
-                } else {
-                    Message messageEcho = new Message(Type.ECHO, "Command not found!");
-                    oos.writeObject(messageEcho);
-                    System.out.println("Sent: 'Command not found!'");
-                    oos.flush();
-                }
-            }
-        } catch (IOException e) {
-            System.out.println("dispatchMessage caught exception :(");
-            e.printStackTrace();
-        }
-    }
-
     private synchronized String handleMessageEcho(String message) {
+        message = message.replaceAll("[^a-zA-Z0-9]", " ");
         return message;
     }
 
@@ -122,7 +64,7 @@ public class ServerThread implements Runnable {
              PreparedStatement statement = connection.prepareStatement(GET_USER_BY_USERNAME)) {
             statement.setString(1, user.getUsername());
             ResultSet results = statement.executeQuery();
-            if (results.next()){
+            if (results.next()) {
                 existedUser = new User();
                 existedUser.setUsername(results.getString("name"));
             }
@@ -131,7 +73,7 @@ public class ServerThread implements Runnable {
     }
 
 
-    private synchronized Boolean createUser(User user) throws SQLException {
+    private synchronized boolean createUser(User user) throws SQLException {
         boolean rowUpdated = false;
         try (DBConnection dbHelper = DBConnection.getDBHelper();
              Connection connection = dbHelper.getConnection();
@@ -196,7 +138,7 @@ public class ServerThread implements Runnable {
                         String messageToEcho = (String) message.getT();
                         System.out.printf("Received: '%s'.\n", messageToEcho);
                         messageToEcho = handleMessageEcho(messageToEcho);
-                        oss.writeObject(new Message<String>(Type.ECHO,messageToEcho));
+                        oss.writeObject(new Message<String>(Type.ECHO, messageToEcho));
                         oss.flush();
                     }
                 }
